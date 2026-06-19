@@ -23,11 +23,11 @@ const NAMES = {
   'test-checkout':'TEST checkout (ignore)'
 };
 const SLUG_TO_WCID = {
-  'vitamin-c-serum':51,'exosome-niacinamide-serum':52,'retinol-alternative-oil-serum':53,'all-in-one-facial-oil':54,
-  'foundation-with-peptides':55,'sunscreen-spf30-tint':56,'hydrating-toner':57,'brightening-eye-cream':58,
-  'ceramide-barrier-night-cream':59,'moisturising-day-cream':60,'antioxidant-ginkgo-gel-booster':61,'double-hydration-gel-booster':62,
-  'acne-spot-care':63,'micellar-cleansing-water':64,'cleansing-foam':65,'sensitive-oil-milk-cleanser':66,
-  'moisturising-shampoo':67,'moisturising-conditioner':68
+  'vitamin-c-serum':104,'exosome-niacinamide-serum':145,'retinol-alternative-oil-serum':153,'all-in-one-facial-oil':100,
+  'foundation-with-peptides':115,'sunscreen-spf30-tint':107,'hydrating-toner':111,'brightening-eye-cream':136,
+  'ceramide-barrier-night-cream':157,'moisturising-day-cream':96,'antioxidant-ginkgo-gel-booster':135,'double-hydration-gel-booster':134,
+  'acne-spot-care':81,'micellar-cleansing-water':149,'cleansing-foam':84,'sensitive-oil-milk-cleanser':160,
+  'moisturising-shampoo':88,'moisturising-conditioner':92
 };
 const DISCOUNTS = { 'ATCOST': { type: 'set_subtotal', value: 1006 } }; // pence — forces product subtotal to £10.06 (~€11.6 Selfnamed cost); delivery added on top
 const FREE_SHIP_THRESHOLD = 4000;
@@ -114,7 +114,7 @@ export default async function handler(req, res) {
       try {
         const auth = 'Basic ' + Buffer.from(WC_KEY + ':' + WC_SECRET).toString('base64');
         const orderBody = {
-          payment_method: 'square', payment_method_title: 'Card (Square)', set_paid: true, transaction_id: paymentId,
+          payment_method: 'opuless_card', payment_method_title: 'Card (Square)', set_paid: true, transaction_id: paymentId,
           billing: { first_name: customer.first_name || nm, last_name: customer.last_name || '', email: customer.email || '', phone: customer.phone || '', address_1: shipping.address_1 || '', address_2: shipping.address_2 || '', city: shipping.city || '', postcode: shipping.postcode || '', country: shipping.country || 'GB' },
           shipping: { first_name: customer.first_name || nm, last_name: customer.last_name || '', address_1: shipping.address_1 || '', address_2: shipping.address_2 || '', city: shipping.city || '', postcode: shipping.postcode || '', country: shipping.country || 'GB' },
           line_items: lineItems,
