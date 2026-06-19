@@ -29,7 +29,7 @@ const SLUG_TO_WCID = {
   'acne-spot-care':81,'micellar-cleansing-water':149,'cleansing-foam':84,'sensitive-oil-milk-cleanser':160,
   'moisturising-shampoo':88,'moisturising-conditioner':92
 };
-const DISCOUNTS = { 'ATCOST': { type: 'set_subtotal', value: 1006 } }; // pence — forces product subtotal to £10.06 (~€11.6 Selfnamed cost); delivery added on top
+const DISCOUNTS = {};
 const FREE_SHIP_THRESHOLD = 4000;
 const SHIPPING = 495;
 
