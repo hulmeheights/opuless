@@ -426,7 +426,7 @@ function go(hash){ if(location.hash===hash){ render(); } else { location.hash=ha
 /* ---------- on-page checkout (Square card form, customer stays on opuless.co) ---------- */
 var SQ={payments:null,card:null,ready:false};
 function val(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
-var CODES={ 'ATCOST':{type:'set_subtotal',value:10.06} }; // £ \u2014 sets product subtotal to cost (~\u20AC11.6); delivery added normally
+var CODES={};
 var APPLIED=null;
 function coTotals(){
   var sub=bagSubtotal(), disc=0, c=APPLIED&&CODES[APPLIED];
