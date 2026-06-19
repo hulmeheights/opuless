@@ -1,6 +1,5 @@
-// TEMPORARY read-only diagnostic. Key-gated. Remove after use.
-// Shows products (ids, sku, Selfnamed linkage meta) and recent orders' line items,
-// so we can see whether the synced products got new IDs and what the orders reference.
+// TEMPORARY read/write diagnostic. Key-gated. Remove after use.
+// ?publish=1 publishes any Selfnamed-linked draft products and returns the linked list (id, name, status, selfnamed id).
 export default async function handler(req, res) {
   const KEY = 'opl-diag-9f3k7Q';
   if ((req.query.key || '') !== KEY) { res.status(403).json({ error: 'forbidden' }); return; }
@@ -8,31 +7,38 @@ export default async function handler(req, res) {
     const WC_URL = (process.env.WC_STORE_URL || process.env.WC_URL || '').replace(/\/+$/, '');
     const WC_KEY = process.env.WC_CONSUMER_KEY || process.env.WC_KEY;
     const WC_SECRET = process.env.WC_CONSUMER_SECRET || process.env.WC_SECRET;
-    if (!WC_URL || !WC_KEY || !WC_SECRET) { res.status(200).json({ error: 'WC credentials missing in env', have: { WC_URL: !!WC_URL, WC_KEY: !!WC_KEY, WC_SECRET: !!WC_SECRET } }); return; }
     const auth = 'Basic ' + Buffer.from(WC_KEY + ':' + WC_SECRET).toString('base64');
 
     const pr = await fetch(WC_URL + '/wp-json/wc/v3/products?per_page=100&status=any', { headers: { Authorization: auth } });
-    const prRaw = await pr.text();
-    let products; try { products = JSON.parse(prRaw); } catch (e) { products = null; }
-    const prodSummary = Array.isArray(products) ? products.map(function (p) {
-      const snMeta = (p.meta_data || []).filter(function (m) { return /self.?named|^_sn_|selfnamed/i.test(String(m.key)); }).map(function (m) { return m.key + '=' + (typeof m.value === 'object' ? JSON.stringify(m.value) : m.value); });
-      return { id: p.id, name: p.name, sku: p.sku, type: p.type, status: p.status, selfnamed_meta: snMeta };
-    }) : { parse_failed: true, sample: prRaw.slice(0, 300) };
+    let products = await pr.json();
+    if (!Array.isArray(products)) products = [];
 
-    const or = await fetch(WC_URL + '/wp-json/wc/v3/orders?per_page=5&orderby=date&order=desc', { headers: { Authorization: auth } });
-    const orRaw = await or.text();
-    let orders; try { orders = JSON.parse(orRaw); } catch (e) { orders = null; }
-    const orderSummary = Array.isArray(orders) ? orders.map(function (o) {
-      return { id: o.id, status: o.status, total: o.total, created: o.date_created, line_items: (o.line_items || []).map(function (li) { return { product_id: li.product_id, name: li.name, sku: li.sku, qty: li.quantity }; }) };
-    }) : { parse_failed: true, sample: orRaw.slice(0, 300) };
+    function snId(p) { var m = (p.meta_data || []).find(function (x) { return /_selfnamed_product_id/i.test(String(x.key)); }); return m ? m.value : null; }
+    var linked = products.filter(function (p) { return snId(p); });
+
+    var published_now = [];
+    if (req.query.publish === '1') {
+      for (var i = 0; i < linked.length; i++) {
+        var p = linked[i];
+        if (p.status !== 'publish') {
+          try {
+            var up = await fetch(WC_URL + '/wp-json/wc/v3/products/' + p.id, { method: 'PUT', headers: { Authorization: auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'publish' }) });
+            var upj = await up.json();
+            p.status = (upj && upj.status) ? upj.status : p.status;
+            published_now.push({ id: p.id, name: p.name, new_status: p.status });
+          } catch (e) { published_now.push({ id: p.id, name: p.name, error: String(e) }); }
+        }
+      }
+    }
+
+    var linked_products = linked.map(function (p) { return { id: p.id, name: p.name, status: p.status, selfnamed_product_id: snId(p) }; });
 
     res.status(200).json({
       wc_url: WC_URL,
-      products_http_status: pr.status,
-      product_count: Array.isArray(products) ? products.length : null,
-      products: prodSummary,
-      orders_http_status: or.status,
-      recent_orders: orderSummary
+      total_products: products.length,
+      linked_count: linked.length,
+      published_now: published_now,
+      linked_products: linked_products
     });
   } catch (e) {
     res.status(200).json({ error: 'diag failed', detail: String(e) });
