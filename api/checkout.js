@@ -31,7 +31,7 @@ const SLUG_TO_WCID = {
 };
 const DISCOUNTS = {};
 const FREE_SHIP_THRESHOLD = 4000;
-const SHIPPING = 495;
+const SHIPPING = 1085;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }

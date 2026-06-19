@@ -291,7 +291,7 @@ function renderBag(){
     +'<div class="bag-items">'+items+'</div>'
     +'<div class="bag-foot"><div class="bag-sub"><span>Subtotal</span><span>'+money(sub)+'</span></div>'
     +'<button class="btn" onclick="location.hash=\'#/checkout\';closeBag();">Checkout</button>'
-    +'<p class="bag-note">Secure checkout \u00B7 Free UK delivery over \u00A340 \u00B7 \u00A34.95 under</p></div>';
+    +'<p class="bag-note">Secure checkout \u00B7 Free UK delivery over \u00A340 \u00B7 \u00A310.85 under</p></div>';
 }
 function checkout(){
   var items=[]; for(var k in BAG){ var p=BY[k]; if(p){ items.push({name:p.name, price:Math.round(p.price*100), qty:BAG[k]}); } }
@@ -432,7 +432,7 @@ function coTotals(){
   var sub=bagSubtotal(), disc=0, c=APPLIED&&CODES[APPLIED];
   if(c){ if(c.type==='set_subtotal') disc=Math.max(0,sub-c.value); else if(c.type==='percent') disc=sub*c.value/100; else disc=c.value; if(disc>sub) disc=sub; }
   var net=sub-disc, onlyTest=(Object.keys(BAG).length===1&&BAG['test-checkout']>0);
-  var ship=(onlyTest||net>=FREE_SHIP)?0:4.95;
+  var ship=(onlyTest||net>=FREE_SHIP)?0:10.85;
   return {sub:sub,disc:disc,net:net,ship:ship,total:net+ship};
 }
 function coSummaryHTML(){
