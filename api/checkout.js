@@ -106,9 +106,13 @@ export default async function handler(req, res) {
     } else { console.error('RESEND_NO_KEY'); }
 
     // 3) Best-effort WooCommerce order (fulfilment). Skipped for the test item; never blocks the sale.
-    if (process.env.WC_URL && process.env.WC_KEY && process.env.WC_SECRET && lineItems.length) {
+    // Accept either naming scheme for the credentials, and strip any trailing slash from the URL.
+    const WC_URL = (process.env.WC_STORE_URL || process.env.WC_URL || '').replace(/\/+$/, '');
+    const WC_KEY = process.env.WC_CONSUMER_KEY || process.env.WC_KEY;
+    const WC_SECRET = process.env.WC_CONSUMER_SECRET || process.env.WC_SECRET;
+    if (WC_URL && WC_KEY && WC_SECRET && lineItems.length) {
       try {
-        const auth = 'Basic ' + Buffer.from(process.env.WC_KEY + ':' + process.env.WC_SECRET).toString('base64');
+        const auth = 'Basic ' + Buffer.from(WC_KEY + ':' + WC_SECRET).toString('base64');
         const orderBody = {
           payment_method: 'square', payment_method_title: 'Card (Square)', set_paid: true, transaction_id: paymentId,
           billing: { first_name: customer.first_name || nm, last_name: customer.last_name || '', email: customer.email || '', phone: customer.phone || '', address_1: shipping.address_1 || '', address_2: shipping.address_2 || '', city: shipping.city || '', postcode: shipping.postcode || '', country: shipping.country || 'GB' },
@@ -117,7 +121,7 @@ export default async function handler(req, res) {
           shipping_lines: [{ method_id: shippingCost ? 'flat_rate' : 'free_shipping', method_title: shippingCost ? 'UK delivery' : 'Free UK delivery', total: (shippingCost / 100).toFixed(2) }]
         };
         if (discount > 0) orderBody.fee_lines = [{ name: 'Discount' + (code ? (' (' + code + ')') : ''), total: '-' + (discount / 100).toFixed(2) }];
-        const wc = await fetch(process.env.WC_URL + '/wp-json/wc/v3/orders', { method: 'POST', headers: { 'Authorization': auth, 'Content-Type': 'application/json' }, body: JSON.stringify(orderBody) });
+        const wc = await fetch(WC_URL + '/wp-json/wc/v3/orders', { method: 'POST', headers: { 'Authorization': auth, 'Content-Type': 'application/json' }, body: JSON.stringify(orderBody) });
         const wcData = await wc.json();
         if (wc.ok) console.log('WC_OK order ' + wcData.id); else console.error('WC_FAIL ' + wc.status + ' ' + JSON.stringify(wcData).slice(0, 300));
         res.status(200).json({ ok: true, paid: true, order_recorded: !!wc.ok, order_id: wc.ok ? wcData.id : undefined, payment_id: paymentId }); return;
