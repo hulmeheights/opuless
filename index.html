@@ -461,7 +461,7 @@ function checkoutView(){
      +'<h3>Your details</h3>'
      +'<div class="fld2"><input id="co_fn" placeholder="First name"><input id="co_ln" placeholder="Last name"></div>'
      +'<input id="co_email" type="email" placeholder="Email address">'
-     +'<input id="co_phone" placeholder="Phone (for delivery updates)">'
+     +'<input id="co_phone" placeholder="Phone number (required for delivery)">'
      +'<h3>Delivery address</h3>'
      +'<input id="co_a1" placeholder="Address line 1">'
      +'<input id="co_a2" placeholder="Address line 2 (optional)">'
@@ -499,7 +499,7 @@ function payNow(){
   var statusEl=document.getElementById('co_status'), btn=document.getElementById('co_pay');
   if(!SQ.ready||!SQ.card){ if(statusEl) statusEl.textContent='Payment form is still loading\u2026'; return; }
   var fn=val('co_fn'),ln=val('co_ln'),email=val('co_email'),phone=val('co_phone'),a1=val('co_a1'),a2=val('co_a2'),city=val('co_city'),pc=val('co_pc');
-  if(!fn||!email||!a1||!city||!pc){ if(statusEl) statusEl.textContent='Please add your name, email and full delivery address.'; return; }
+  if(!fn||!ln||!email||!phone||!a1||!city||!pc){ if(statusEl) statusEl.textContent='Please add your full name, email, phone number and full delivery address.'; return; }
   var t=coTotals(), total=t.total;
   btn.disabled=true; btn.textContent='Processing\u2026'; if(statusEl) statusEl.textContent='';
   var verification={ amount: total.toFixed(2), currencyCode:'GBP', intent:'CHARGE', customerInitiated:true, sellerKeyedIn:false,
